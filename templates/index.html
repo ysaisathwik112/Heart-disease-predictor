@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Heart Disease Risk Predictor — India</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+
+  <div class="header">
+    <div class="badge">🇮🇳 India Clinical Risk Screening</div>
+    <h1>Heart Disease<br><span>Risk Predictor</span></h1>
+    <p>Enter patient vitals &amp; history → get instant AI-based risk assessment</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+      <span class="card-title">PATIENT ASSESSMENT FORM</span>
+    </div>
+
+    <div class="card-body">
+      <form method="POST" action="/predict">
+
+        <!-- Section 1: Demographics -->
+        <div class="section-label">01 — Demographics &amp; Vitals</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Age (years)</label>
+            <input type="number" name="age" min="18" max="100" placeholder="e.g. 52" required
+                   value="{{ request.form.get('age','') }}"/>
+          </div>
+          <div class="field">
+            <label>Sex</label>
+            <select name="sex" required>
+              <option value="" disabled {% if not request.form.get('sex') %}selected{% endif %}>Select</option>
+              <option value="1" {% if request.form.get('sex')=='1' %}selected{% endif %}>Male</option>
+              <option value="0" {% if request.form.get('sex')=='0' %}selected{% endif %}>Female</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Resting BP (mmHg)</label>
+            <input type="number" name="resting_bp" min="80" max="220" placeholder="e.g. 130"
+                   value="{{ request.form.get('resting_bp','') }}" required/>
+          </div>
+          <div class="field">
+            <label>Max Heart Rate (bpm)</label>
+            <input type="number" name="max_hr" min="50" max="220" placeholder="e.g. 150"
+                   value="{{ request.form.get('max_hr','') }}" required/>
+          </div>
+        </div>
+
+        <hr class="divider"/>
+
+        <!-- Section 2: Clinical Measurements -->
+        <div class="section-label">02 — Clinical Measurements</div>
+        <div class="grid-3">
+          <div class="field">
+            <label>Cholesterol (mg/dL)</label>
+            <input type="number" name="cholesterol" min="100" max="600" placeholder="e.g. 240"
+                   value="{{ request.form.get('cholesterol','') }}" required/>
+          </div>
+          <div class="field">
+            <label>Chest Pain Type</label>
+            <select name="chest_pain" required>
+              <option value="" disabled {% if not request.form.get('chest_pain') %}selected{% endif %}>Select</option>
+              <option value="0" {% if request.form.get('chest_pain')=='0' %}selected{% endif %}>Typical Angina</option>
+              <option value="1" {% if request.form.get('chest_pain')=='1' %}selected{% endif %}>Atypical Angina</option>
+              <option value="2" {% if request.form.get('chest_pain')=='2' %}selected{% endif %}>Non-Anginal</option>
+              <option value="3" {% if request.form.get('chest_pain')=='3' %}selected{% endif %}>Asymptomatic</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Resting ECG</label>
+            <select name="ecg" required>
+              <option value="" disabled {% if not request.form.get('ecg') %}selected{% endif %}>Select</option>
+              <option value="0" {% if request.form.get('ecg')=='0' %}selected{% endif %}>Normal</option>
+              <option value="1" {% if request.form.get('ecg')=='1' %}selected{% endif %}>ST-T Abnormality</option>
+              <option value="2" {% if request.form.get('ecg')=='2' %}selected{% endif %}>LV Hypertrophy</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>ST Depression</label>
+            <input type="number" name="st_depression" min="0" max="10" step="0.1" placeholder="e.g. 1.5"
+                   value="{{ request.form.get('st_depression','') }}" required/>
+          </div>
+          <div class="field">
+            <label>Fasting Blood Sugar</label>
+            <select name="fbs" required>
+              <option value="" disabled {% if not request.form.get('fbs') %}selected{% endif %}>Select</option>
+              <option value="1" {% if request.form.get('fbs')=='1' %}selected{% endif %}}>&gt; 120 mg/dL</option>
+              <option value="0" {% if request.form.get('fbs')=='0' %}selected{% endif %}}>≤ 120 mg/dL</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Exercise Angina</label>
+            <select name="exercise_ang" required>
+              <option value="" disabled {% if not request.form.get('exercise_ang') %}selected{% endif %}>Select</option>
+              <option value="1" {% if request.form.get('exercise_ang')=='1' %}selected{% endif %}>Yes</option>
+              <option value="0" {% if request.form.get('exercise_ang')=='0' %}selected{% endif %}>No</option>
+            </select>
+          </div>
+        </div>
+
+        <hr class="divider"/>
+
+        <!-- Section 3: India-Specific Risk Factors -->
+        <div class="section-label">03 — India-Specific Risk Factors</div>
+        <div class="check-group">
+
+          <label class="check-item" id="lbl-fh">
+            <input type="checkbox" name="_fh" id="chk-fh" onchange="syncCheck('chk-fh','family_hist')"/>
+            <div class="check-content" style="display:flex;align-items:center;gap:0.5rem">
+              <div class="check-box" id="box-fh"></div>
+              <span class="check-label">Family History</span>
+            </div>
+            <input type="hidden" name="family_hist" id="family_hist" value="{{ request.form.get('family_hist','0') }}"/>
+          </label>
+
+          <label class="check-item" id="lbl-sm">
+            <input type="checkbox" name="_sm" id="chk-sm" onchange="syncCheck('chk-sm','smoking')"/>
+            <div class="check-content" style="display:flex;align-items:center;gap:0.5rem">
+              <div class="check-box" id="box-sm"></div>
+              <span class="check-label">Smoker</span>
+            </div>
+            <input type="hidden" name="smoking" id="smoking" value="{{ request.form.get('smoking','0') }}"/>
+          </label>
+
+          <label class="check-item" id="lbl-db">
+            <input type="checkbox" name="_db" id="chk-db" onchange="syncCheck('chk-db','diabetes')"/>
+            <div class="check-content" style="display:flex;align-items:center;gap:0.5rem">
+              <div class="check-box" id="box-db"></div>
+              <span class="check-label">Diabetes</span>
+            </div>
+            <input type="hidden" name="diabetes" id="diabetes" value="{{ request.form.get('diabetes','0') }}"/>
+          </label>
+
+        </div>
+
+        <button type="submit" class="submit-btn">⚡ Analyse Risk Now</button>
+
+      </form>
+
+      <!-- Result -->
+      {% if result %}
+      <div class="result {{ result.color }}">
+        <div class="result-top">
+          <div class="result-icon">{{ result.emoji }}</div>
+          <div>
+            <div class="result-verdict">{{ result.label }}</div>
+            <div class="result-prob">RISK PROBABILITY: {{ result.probability }}</div>
+          </div>
+        </div>
+        <div class="result-advice">{{ result.advice }}</div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <p class="disclaimer">
+    ⚠️ This tool is for educational purposes only and does not constitute medical advice.<br>
+    Always consult a qualified cardiologist for diagnosis and treatment.
+  </p>
+
+  <script>
+    // Sync checkbox state to hidden input for Flask form submission
+    function syncCheck(checkId, hiddenId) {
+      const checked = document.getElementById(checkId).checked;
+      document.getElementById(hiddenId).value = checked ? '1' : '0';
+      document.getElementById('box-' + checkId.replace('chk-','')).style.background = checked ? 'var(--red)' : '';
+      document.getElementById('box-' + checkId.replace('chk-','')).style.borderColor = checked ? 'var(--red)' : '';
+    }
+
+    // Restore checkbox state after form submit
+    window.onload = function() {
+      [['chk-fh','family_hist'],['chk-sm','smoking'],['chk-db','diabetes']].forEach(([chk, hid]) => {
+        if (document.getElementById(hid).value === '1') {
+          document.getElementById(chk).checked = true;
+          const key = chk.replace('chk-','');
+          document.getElementById('box-'+key).style.background = 'var(--red)';
+          document.getElementById('box-'+key).style.borderColor = 'var(--red)';
+        }
+      });
+    };
+  </script>
+
+</body>
+</html>
